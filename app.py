@@ -1,3 +1,4 @@
+import os
 from flask import Flask, render_template, request, jsonify
 import requests
 import os
@@ -5,7 +6,7 @@ import os
 app = Flask(__name__)
 
 # OpenRouter API configuration
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = os.getenv('OPENROUTER_APIKEY')
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL_NAME = "google/gemma-3-4b-it:free"
 

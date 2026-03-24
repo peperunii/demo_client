@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toptal Demo for Client</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: 600;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        label {
+            display: block;
+            color: #555;
+            font-size: 0.9em;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 120px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        textarea::placeholder {
+            color: #aaa;
+        }
+
+        .subtitle {
+            color: #888;
+            font-size: 0.95em;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .output-section {
+            margin-top: 30px;
+        }
+
+        .output-box {
+            width: 100%;
+            min-height: 200px;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            background: #f9f9f9;
+            color: #333;
+            font-size: 15px;
+            line-height: 1.6;
+            overflow-y: auto;
+            max-height: 400px;
+        }
+
+        .output-box.loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #667eea;
+            font-style: italic;
+        }
+
+        .output-box.error {
+            color: #d32f2f;
+            background: #ffebee;
+            border-color: #ef9a9a;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-text {
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .empty-state {
+            color: #bbb;
+            font-style: italic;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Toptal demo for client</h1>
+        
+        <div class="input-section">
+            <label for="messageInput">Your Message</label>
+            <textarea
+                id="messageInput"
+                placeholder="Ask anything like: &quot;What's the capital of France?&quot;"
+                autocomplete="off"
+            ></textarea>
+            <div class="subtitle">Ask anything</div>
+        </div>
+
+        <div class="output-section">
+            <label>Response</label>
+            <div id="outputBox" class="output-box">
+                <div class="empty-state">The response will appear here...</div>
+            </div>
+            <div class="info-text">Press Enter to submit (Shift+Enter for new line)</div>
+        </div>
+    </div>
+
+    <script>
+        const messageInput = document.getElementById('messageInput');
+        const outputBox = document.getElementById('outputBox');
+
+        // Handle Enter key press
+        messageInput.addEventListener('keydown', async (e) => {
+            // Submit on Enter (but not Shift+Enter)
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                await sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                outputBox.className = 'output-box error';
+                outputBox.textContent = 'Please enter a message first.';
+                return;
+            }
+
+            // Show loading state
+            outputBox.className = 'output-box loading';
+            outputBox.innerHTML = '<div class="spinner"></div> Thinking...';
+
+            try {
+                const response = await fetch('/llm-response', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Show success response
+                    outputBox.className = 'output-box';
+                    outputBox.textContent = data.response;
+                } else {
+                    // Show error
+                    outputBox.className = 'output-box error';
+                    outputBox.textContent = `Error: ${data.error}${data.details ? '\n\n' + data.details : ''}`;
+                }
+            } catch (error) {
+                // Show network error
+                outputBox.className = 'output-box error';
+                outputBox.textContent = `Network error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

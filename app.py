@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 # OpenRouter API configuration
-OPENROUTER_API_KEY = "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"
+OPENROUTER_API_KEY = "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"
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 MODEL_NAME = "google/gemma-3-4b-it:free"
 
